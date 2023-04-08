@@ -15,16 +15,17 @@ import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
-    var flagsURL = ""
-    var countryName = ""
-    var emoji = ""
-    var code = ""
+    var avatarURL = ""
+    var characterName = ""
+    var id = ""
+    var physDescription = ""
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         getHeroImageURL()
-        Log.d("flagsURL", "flags URL set")
         var button = findViewById<Button>(R.id.button)
         var imageView = findViewById<ImageView>(R.id.nasaPic)
         var text1 = findViewById<TextView>(R.id.firstTextView)
@@ -36,28 +37,36 @@ class MainActivity : AppCompatActivity() {
     private fun getNextImage(button: Button, imageView: ImageView, t1: TextView, t2: TextView, t3: TextView) {
         button.setOnClickListener {
             getHeroImageURL()
+            t3.text = characterName
 
-            Glide.with(this)
-                .load(flagsURL)
-                .fitCenter()
-                .into(imageView)
+            try {
+                Glide.with(this)
+                    .load(avatarURL)
+                    .fitCenter()
+                    .into(imageView)
+            } catch (e: Exception) {
+                Log.d("Hello", "$e")
+                getNextImage(button, imageView, t1, t2, t3)
+            }
         }
     }
 
     private fun getHeroImageURL() {
         val client = AsyncHttpClient()
 
-        client["https://cdn.jsdelivr.net/npm/country-flag-emoji-json@2.0.0/dist/index.json", object : JsonHttpResponseHandler() {
+        client["https://api.sampleapis.com/avatar/characters", object : JsonHttpResponseHandler() {
             override fun onSuccess(statusCode: Int, headers: Headers, json: JsonHttpResponseHandler.JSON) {
                 Log.d("NationalFlags", "response successful$json")
 
                 val randomNumber = Random.nextInt(json.jsonArray.length())
 
-                flagsURL = json.jsonArray.getJSONObject(randomNumber).getString("image")
-                Log.d("LOGURL","your url $flagsURL")
-                countryName = json.jsonArray.getJSONObject(randomNumber).getString("name")
-                code = json.jsonArray.getJSONObject(randomNumber).getString("code")
-                emoji = json.jsonArray.getJSONObject(randomNumber).getString("emoji")
+                avatarURL = json.jsonArray.getJSONObject(randomNumber).getString("image")
+                Log.d("AvatarURL", "URL set to -->$avatarURL")
+                if (!json.jsonArray.getJSONObject(randomNumber).isNull("name")){
+                    characterName = json.jsonArray.getJSONObject(randomNumber).getString("name")
+            }
+                Log.d("AvatarName", "Name set to -->$characterName")
+                id = json.jsonArray.getJSONObject(randomNumber).getString("id")
             }
 
             override fun onFailure(
@@ -69,6 +78,6 @@ class MainActivity : AppCompatActivity() {
                 Log.d("NationalFlags Error", errorResponse)
             }
         }]
-
     }
+
 }
